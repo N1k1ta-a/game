@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Поймай сердечко ❤️</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Marck+Script&family=Montserrat:wght@400;600;700&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    background: linear-gradient(135deg, #ffe6e6, #ffb3b3, #ff8fab);
+    background-size: 300% 300%;
+    animation: bgShift 15s ease infinite;
+    font-family: 'Montserrat', sans-serif;
+    min-height: 100vh;
+    overflow: hidden;
+    color: #4a4a4a;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes bgShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+#game {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.hud {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(255, 105, 180, 0.2);
+    font-weight: 700;
+    color: #d6336c;
+    font-size: 1rem;
+}
+
+.hud-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.hud-icon { font-size: 1.3rem; }
+
+.progress-wrap {
+    position: fixed;
+    top: 65px; left: 0; right: 0;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.5);
+    z-index: 100;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #ff4d6d, #ff8fab);
+    transition: width 0.3s ease;
+    box-shadow: 0 0 10px rgba(255, 77, 109, 0.6);
+}
+
+.falling-heart {
+    position: absolute;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+    will-change: transform;
+    filter: drop-shadow(0 4px 8px rgba(255, 77, 109, 0.4));
+}
+
+.falling-heart:hover { transform: scale(1.15); }
+.falling-heart:active { transform: scale(0.85); }
+
+.pop-effect {
+    position: absolute;
+    pointer-events: none;
+    font-size: 2rem;
+    animation: popOut 0.6s ease forwards;
+    z-index: 50;
+}
+
+@keyframes popOut {
+    0% { transform: scale(0.5); opacity: 1; }
+    100% { transform: scale(2) translateY(-40px); opacity: 0; }
+}
+
+.start-screen, .end-screen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    z-index: 200;
+    background: rgba(255, 240, 245, 0.96);
+    backdrop-filter: blur(15px);
+    text-align: center;
+    animation: fadeIn 0.5s ease forwards;
+}
+
+.start-screen.hidden, .end-screen.hidden { display: none; }
+
+.card {
+    background: rgba(255, 255, 255, 0.98);
+    padding: 40px 30px;
+    border-radius: 30px;
+    box-shadow: 0 20px 50px rgba(255, 105, 180, 0.35);
+    max-width: 520px;
+    width: 100%;
+    border: 2px solid #fff;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+h1 {
+    font-family: 'Marck Script', cursive;
+    color: #d6336c;
+    font-size: 2.4rem;
+    margin-bottom: 15px;
+    line-height: 1.2;
+}
+
+h2 {
+    font-family: 'Marck Script', cursive;
+    color: #d6336c;
+    font-size: 2rem;
+    margin-bottom: 15px;
+}
+
+p {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.rules {
+    background: linear-gradient(135deg, #fff0f5, #ffe4ec);
+    border-radius: 16px;
+    padding: 18px;
+    margin: 20px 0;
+    text-align: left;
+    font-size: 0.95rem;
+    color: #555;
+    line-height: 1.7;
+    border-left: 5px solid #ff4d6d;
+}
+
+.rules strong { color: #d6336c; }
+
+.start-btn {
+    padding: 16px 45px;
+    font-size: 1.15rem;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 700;
+    font-family: 'Montserrat', sans-serif;
+    background: #ff4d6d;
+    color: white;
+    box-shadow: 0 6px 18px rgba(255, 77, 109, 0.4);
+    transition: all 0.3s ease;
+}
+
+.start-btn:hover {
+    transform: scale(1.05);
+    background: #ff3355;
+    box-shadow: 0 8px 25px rgba(255, 77, 109, 0.55);
+}
+
+.start-btn:active { transform: scale(0.98); }
+
+.final-text {
+    text-align: left;
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #555;
+    margin: 15px 0;
+}
+
+.final-text p { margin-bottom: 12px; }
+
+.final-heart {
+    font-size: 3rem;
+    display: inline-block;
+    margin-top: 15px;
+    animation: beat 1s ease infinite;
+}
+
+@keyframes beat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+.celebration-heart {
+    position: fixed;
+    width: 20px;
+    height: 20px;
+    background: #ff4d6d;
+    transform: rotate(45deg);
+    animation: fly 4s linear infinite;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 150;
+}
+
+.celebration-heart::before, .celebration-heart::after {
+    content: '';
+    width: 20px;
+    height: 20px;
+    background: #ff4d6d;
+    border-radius: 50%;
+    position: absolute;
+}
+
+.celebration-heart::before { top: -10px; left: 0; }
+.celebration-heart::after { top: 0; left: -10px; }
+
+@keyframes fly {
+    0% { transform: translateY(100vh) rotate(45deg) scale(0); opacity: 0; }
+    20% { opacity: 0.9; }
+    100% { transform: translateY(-100px) rotate(45deg) scale(1.6); opacity: 0; }
+}
+
+.floating-text {
+    position: fixed;
+    pointer-events: none;
+    font-weight: 700;
+    color: #ff4d6d;
+    font-size: 1.3rem;
+    z-index: 60;
+    animation: floatUp 1s ease forwards;
+    font-family: 'Marck Script', cursive;
+}
+
+@keyframes floatUp {
+    0% { transform: translateY(0) scale(0.8); opacity: 1; }
+    100% { transform: translateY(-70px) scale(1.2); opacity: 0; }
+}
+
+@keyframes shakeScreen {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(-5px, 0); }
+    75% { transform: translate(5px, 0); }
+}
+
+.shake { animation: shakeScreen 0.3s ease; }
+
+@media (max-width: 480px) {
+    h1 { font-size: 1.9rem; }
+    h2 { font-size: 1.6rem; }
+    .card { padding: 30px 20px; }
+    .hud { padding: 12px 15px; font-size: 0.9rem; }
+    .hud-icon { font-size: 1.1rem; }
+    .start-btn { padding: 14px 35px; font-size: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<div id="game"></div>
+
+<div class="hud">
+    <div class="hud-item">
+        <span class="hud-icon">💖</span>
+        <span id="scoreLabel">0 / 10</span>
+    </div>
+    <div class="hud-item">
+        <span class="hud-icon">⏱️</span>
+        <span id="timerLabel">60с</span>
+    </div>
+</div>
+
+<div class="progress-wrap">
+    <div class="progress-bar" id="progressBar"></div>
+</div>
+
+<div class="start-screen" id="startScreen">
+    <div class="card">
+        <h1>Поймай сердечко 💕</h1>
+        <p>У меня для тебя маленькая игра. Готова?</p>
+        <div class="rules">
+            <strong>Правила:</strong><br>
+            💖 Лови сердечки кликом или тапом<br>
+            ⏱️ У тебя есть <strong>60 секунд</strong><br>
+            🎯 Нужно поймать <strong>10 сердечек</strong><br>
+            ✨ На финале тебя ждёт сюрприз
+        </div>
+        <button class="start-btn" onclick="startGame()">Начать 💌</button>
+    </div>
+</div>
+
+<div class="end-screen hidden" id="endScreen">
+    <div class="card">
+        <h2 id="endTitle">Моя любимая девочка ❤️</h2>
+        <div class="final-text">
+            <p>Ты справилась — как и всегда. Я очень сильно люблю тебя. Всегда по тебе скучаю, переживаю и хочу поскорее увидеть.</p>
+            <p>Да, я бываю грубоват и резок, но я исправляю это и становлюсь лучше для тебя.</p>
+            <p>Ты — самое прекрасное, что случилось со мной этим летом, и я не хочу тебя потерять.</p>
+            <p>Ты — моё всё. Люблю тебя безумно.</p>
+        </div>
+        <span class="final-heart">💖</span>
+    </div>
+</div>
+
+<script>
+// ==== НАСТРОЙКИ ====
+const TARGET_SCORE = 10;      // сколько сердечек нужно поймать
+const GAME_DURATION = 60;      // длительность игры в секундах
+const HEART_EMOJIS = ['💖', '💕', '💗', '❤️', '💝', '🌸', '✨'];
+const CATCH_PHRASES = [
+    'Молодец 💕',
+    'Ещё одно!',
+    'Люблю тебя',
+    'Ты чудо ✨',
+    'Умница 🌸',
+    'Так держать!',
+    'Моё солнышко'
+];
+// ====================
+
+const game = document.getElementById('game');
+const scoreLabel = document.getElementById('scoreLabel');
+const timerLabel = document.getElementById('timerLabel');
+const progressBar = document.getElementById('progressBar');
+const startScreen = document.getElementById('startScreen');
+const endScreen = document.getElementById('endScreen');
+const endTitle = document.getElementById('endTitle');
+
+let score = 0;
+let timeLeft = GAME_DURATION;
+let gameActive = false;
+let spawnInterval = null;
+let timerInterval = null;
+
+function updateHUD() {
+    scoreLabel.textContent = `${score} / ${TARGET_SCORE}`;
+    timerLabel.textContent = `${timeLeft}с`;
+    const percent = Math.min((score / TARGET_SCORE) * 100, 100);
+    progressBar.style.width = percent + '%';
+}
+
+function startGame() {
+    startScreen.classList.add('hidden');
+    endScreen.classList.add('hidden');
+    score = 0;
+    timeLeft = GAME_DURATION;
+    gameActive = true;
+    updateHUD();
+
+    spawnInterval = setInterval(spawnHeart, 650);
+
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        updateHUD();
+        if (timeLeft <= 0) endGame(false);
+    }, 1000);
+}
+
+function spawnHeart() {
+    if (!gameActive) return;
+
+    const heart = document.createElement('div');
+    heart.className = 'falling-heart';
+    heart.textContent = HEART_EMOJIS[Math.floor(Math.random() * HEART_EMOJIS.length)];
+
+    const size = Math.random() * 30 + 35;
+    heart.style.fontSize = size + 'px';
+
+    const maxX = window.innerWidth - size - 20;
+    heart.style.left = Math.random() * maxX + 'px';
+    heart.style.top = '-80px';
+
+    const duration = Math.random() * 2.5 + 3.5;
+    heart.style.transition = `top ${duration}s linear`;
+
+    game.appendChild(heart);
+
+    requestAnimationFrame(() => {
+        heart.style.top = window.innerHeight + 'px';
+    });
+
+    const catchHandler = (e) => {
+        e.stopPropagation();
+        if (!gameActive) return;
+        catchHeart(heart, e);
+    };
+
+    heart.addEventListener('click', catchHandler);
+    heart.addEventListener('touchstart', catchHandler, { passive: false });
+
+    setTimeout(() => {
+        if (heart.parentNode) heart.remove();
+    }, duration * 1000 + 200);
+}
+
+function catchHeart(heart, e) {
+    if (!gameActive) return;
+
+    const rect = heart.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    const pop = document.createElement('div');
+    pop.className = 'pop-effect';
+    pop.textContent = '💥';
+    pop.style.left = (centerX - 20) + 'px';
+    pop.style.top = (centerY - 20) + 'px';
+    document.body.appendChild(pop);
+    setTimeout(() => pop.remove(), 600);
+
+    const phrase = document.createElement('div');
+    phrase.className = 'floating-text';
+    phrase.textContent = CATCH_PHRASES[Math.floor(Math.random() * CATCH_PHRASES.length)];
+    phrase.style.left = (centerX - 60) + 'px';
+    phrase.style.top = centerY + 'px';
+    document.body.appendChild(phrase);
+    setTimeout(() => phrase.remove(), 1000);
+
+    heart.remove();
+
+    score++;
+    updateHUD();
+
+    if (score >= TARGET_SCORE) endGame(true);
+}
+
+function endGame(won) {
+    gameActive = false;
+    clearInterval(spawnInterval);
+    clearInterval(timerInterval);
+
+    document.querySelectorAll('.falling-heart').forEach(h => h.remove());
+
+    if (won) {
+        endTitle.textContent = 'Моя любимая девочка ❤️';
+        celebrate();
+    } else {
+        endTitle.textContent = 'Почти получилось 💕';
+        endScreen.querySelector('.final-text').innerHTML = `
+            <p>Ты поймала ${score} из ${TARGET_SCORE} сердечек. Но даже если не все — ты всё равно моё самое большое сердечко.</p>
+            <p>Попробуй ещё раз, я в тебя верю 💖</p>
+        `;
+        const restartBtn = document.createElement('button');
+        restartBtn.className = 'start-btn';
+        restartBtn.textContent = 'Попробовать снова 🔄';
+        restartBtn.style.marginTop = '15px';
+        restartBtn.onclick = () => {
+            endScreen.classList.add('hidden');
+            const old = endScreen.querySelector('.start-btn');
+            if (old) old.remove();
+            endScreen.querySelector('.final-text').innerHTML = `
+                <p>Ты справилась — как и всегда. Я очень сильно люблю тебя. Всегда по тебе скучаю, переживаю и хочу поскорее увидеть.</p>
+                <p>Да, я бываю грубоват и резок, но я исправляю это и становлюсь лучше для тебя.</p>
+                <p>Ты — самое прекрасное, что случилось со мной этим летом, и я не хочу тебя потерять.</p>
+                <p>Ты — моё всё. Люблю тебя безумно.</p>
+            `;
+            startGame();
+        };
+        endScreen.querySelector('.card').appendChild(restartBtn);
+    }
+
+    endScreen.classList.remove('hidden');
+}
+
+function celebrate() {
+    const celebrationInterval = setInterval(() => {
+        const h = document.createElement('div');
+        h.className = 'celebration-heart';
+        h.style.left = Math.random() * 100 + 'vw';
+
+        const size = Math.random() * 20 + 12;
+        h.style.width = size + 'px';
+        h.style.height = size + 'px';
+
+        const duration = Math.random() * 2 + 3;
+        h.style.animationDuration = duration + 's';
+
+        document.body.appendChild(h);
+        setTimeout(() => h.remove(), duration * 1000);
+    }, 200);
+
+    setTimeout(() => clearInterval(celebrationInterval), 15000);
+}
+
+document.addEventListener('click', (e) => {
+    if (!gameActive) return;
+    if (e.target.classList.contains('falling-heart')) return;
+    document.body.classList.add('shake');
+    setTimeout(() => document.body.classList.remove('shake'), 300);
+});
+
+updateHUD();
+</script>
+
+</body>
+</html>
